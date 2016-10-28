@@ -560,6 +560,7 @@ function! WebDevIconsGetFileTypeSymbol(...)
     " Dirvish buffers always end in '/', TODO: check how it works in Windows
     let isDirectory = match(expand('%'), '/$') >= 0
     let directoryOpened = 1
+    let isTerm = (getbufvar('%', '&bt') ==# 'terminal')
   else
     let fileNodeExtension = fnamemodify(a:1, ':e')
     let fileNode = fnamemodify(a:1, ':t')
@@ -571,9 +572,12 @@ function! WebDevIconsGetFileTypeSymbol(...)
       let isDirectory = match(a:1, '/$') >= 0
       let directoryOpened = (bufnr(a:1) == bufnr('%'))
     endif
+    let isTerm = (getbufvar(a:1, '&bt') ==# 'terminal')
   endif
 
-  if isDirectory == 0 || g:DevIconsEnableFolderPatternMatching
+  if isTerm
+    let symbol = ''
+  elseif isDirectory == 0 || g:DevIconsEnableFolderPatternMatching
 
     let symbol = g:WebDevIconsUnicodeDecorateFileNodesDefaultSymbol
     let fileNodeExtension = tolower(fileNodeExtension)

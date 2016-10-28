@@ -557,14 +557,19 @@ function! WebDevIconsGetFileTypeSymbol(...)
   if a:0 == 0
     let fileNodeExtension = expand('%:e')
     let fileNode = expand('%:t')
-    let isDirectory = 0
+    " Dirvish buffers always end in '/', TODO: check how it works in Windows
+    let isDirectory = match(expand('%'), '/$') >= 0
+    let directoryOpened = 1
   else
     let fileNodeExtension = fnamemodify(a:1, ':e')
     let fileNode = fnamemodify(a:1, ':t')
     if a:0 == 2
       let isDirectory = a:2
+      " Open directory icon already handled by NERDTreeWebDevIconsRefreshListener
+      let directoryOpened = 0
     else
-      let isDirectory = 0
+      let isDirectory = match(a:1, '/$') >= 0
+      let directoryOpened = (bufnr(a:1) == bufnr('%'))
     endif
   endif
 
@@ -586,13 +591,17 @@ function! WebDevIconsGetFileTypeSymbol(...)
         let symbol = g:WebDevIconsUnicodeDecorateFileNodesExactSymbols[fileNode]
       elseif ((isDirectory == 1 && g:DevIconsEnableFolderExtensionPatternMatching) || isDirectory == 0) && has_key(g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols, fileNodeExtension)
         let symbol = g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols[fileNodeExtension]
-      elseif isDirectory == 1
-        let symbol = g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol
       endif
     endif
 
-  else
-    let symbol = g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol
+  endif
+
+  if symbol == g:WebDevIconsUnicodeDecorateFileNodesDefaultSymbol && isDirectory
+    if directoryOpened
+      let symbol = g:DevIconsDefaultFolderOpenSymbol
+    else
+      let symbol = g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol
+    endif
   endif
 
   " Temporary (hopefully) fix for glyph issues in gvim (proper fix is with the
